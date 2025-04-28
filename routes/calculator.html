@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rise & Shine Hangover Prevention Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f9ff;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #ff9d00, #ff6600);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(255, 126, 0, 0.2);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        h2 {
+            color: #ff6600;
+            border-bottom: 2px solid #ffcc80;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        .tagline {
+            font-style: italic;
+            margin-top: 10px;
+            color: #fff8e1;
+        }
+        .question-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .question-container:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ff6600;
+        }
+        .options {
+            margin-bottom: 15px;
+        }
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .option:hover {
+            background-color: #fff0e0;
+        }
+        .option.selected {
+            background-color: #ffd9b3;
+            border-color: #ff6600;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #666;
+        }
+        button {
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff8533;
+        }
+        #results {
+            display: none;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ff6600;
+        }
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6600;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .recommendation {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffab00;
+            margin: 20px 0;
+        }
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #777;
+            font-style: italic;
+            margin-top: 30px;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #eee;
+            border-radius: 3px;
+            margin: 30px 0 10px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #ff6600;
+            width: 10%;
+            transition: width 0.3s ease;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Rise & Shine</h1>
+            <div class="tagline">Predict your hangover protection level</div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        <div class="progress-info">
+            <span id="progressText">Question 1 of 10</span>
+            <span id="progressPercent">10%</span>
+        </div>
+
+        <div id="quiz-container">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+
+        <button id="navButton">Next</button>
+
+        <div id="results">
+            <h2>Your Rise & Shine Protection Level</h2>
+            <p>Based on your answers, we've calculated your personal alcohol tolerance with Rise & Shine:</p>
+            <div class="result-value" id="result-value">0 drinks</div>
+            <p id="result-explanation"></p>
+            <div class="recommendation" id="recommendation"></div>
+            <p id="drinking-advice"></p>
+            <div class="disclaimer">
+                <p><strong>Disclaimer:</strong> Rise & Shine is designed to help reduce hangover symptoms, not to encourage excessive drinking. Always drink responsibly and know your limits. This calculator provides estimates based on general factors and is not a substitute for medical advice. Individual results may vary.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz setup
+        const questions = [
+            {
+                id: 'weight',
+                type: 'range',
+                question: 'What is your weight?',
+                min: 45,
+                max: 120,
+                unit: 'kg',
+                labels: ['45kg', '70kg', '95kg', '120kg+']
+            },
+            {
+                id: 'metabolism',
+                type: 'select',
+                question: 'How would you describe your metabolism?',
+                options: [
+                    { value: 'slow', text: 'Slow - I gain weight easily' },
+                    { value: 'average', text: 'Average' },
+                    { value: 'fast', text: 'Fast - I have trouble gaining weight' }
+                ]
+            },
+            {
+                id: 'meal',
+                type: 'select',
+                question: 'Do you plan to eat a substantial meal before drinking?',
+                options: [
+                    { value: 'no', text: "No, I'll be drinking on an empty stomach" },
+                    { value: 'light', text: 'Just snacks or a light meal' },
+                    { value: 'full', text: 'Yes, a full meal with protein, fats, and carbs' }
+                ]
+            },
+            {
+                id: 'hydration',
+                type: 'select',
+                question: "What's your typical daily water intake?",
+                options: [
+                    { value: 'low', text: 'Less than 1 liter per day' },
+                    { value: 'medium', text: 'About 1-2 liters per day' },
+                    { value: 'high', text: 'More than 2 liters per day' }
+                ]
+            },
+            {
+                id: 'exercise',
+                type: 'select',
+                question: 'How often do you exercise?',
+                options: [
+                    { value: 'rarely', text: 'Rarely or never' },
+                    { value: 'sometimes', text: 'Once or twice a week' },
+                    { value: 'regularly', text: 'Three or more times a week' }
+                ]
+            },
+            {
+                id: 'alcohol_frequency',
+                type: 'select',
+                question: 'How often do you typically drink alcohol?',
+                options: [
+                    { value: 'rarely', text: 'Rarely (a few times a year)' },
+                    { value: 'occasionally', text: 'Occasionally (once or twice a month)' },
+                    { value: 'weekly', text: 'Weekly' },
+                    { value: 'multiple', text: 'Multiple times per week' }
+                ]
+            },
+            {
+                id: 'tolerance',
+                type: 'select',
+                question: 'How would you describe your alcohol tolerance?',
+                options: [
+                    { value: 'low', text: 'Low - I feel effects after 1-2 drinks' },
+                    { value: 'medium', text: 'Medium - I feel effects after 3-4 drinks' },
+                    { value: 'high', text: 'High - I need 5+ drinks to feel effects' }
+                ]
+            },
+            {
+                id: 'sleep',
+                type: 'select',
+                question: 'How much sleep do you typically get?',
+                options: [
+                    { value: 'little', text: 'Less than 6 hours' },
+                    { value: 'average', text: 'About 6-8 hours' },
+                    { value: 'plenty', text: 'More than 8 hours' }
+                ]
+            },
+            {
+                id: 'hangover',
+                type: 'select',
+                question: 'How severe are your hangovers usually?',
+                options: [
+                    { value: 'mild', text: 'Mild - I recover quickly' },
+                    { value: 'moderate', text: 'Moderate - Uncomfortable but manageable' },
+                    { value: 'severe', text: 'Severe - Debilitating, affects my whole day' }
+                ]
+            },
+            {
+                id: 'drink_pace',
+                type: 'select',
+                question: 'How quickly do you typically consume your drinks?',
+                options: [
+                    { value: 'slow', text: 'Slowly - I sip and take my time' },
+                    { value: 'moderate', text: 'Moderately - About one drink per hour' },
+                    { value: 'fast', text: 'Quickly - Multiple drinks per hour' }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = {};
+
+        // DOM elements
+        const quizContainer = document.getElementById('quiz-container');
+        const navButton = document.getElementById('navButton');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const resultsContainer = document.getElementById('results');
+
+        // Initialize quiz
+        function initQuiz() {
+            renderQuestion();
+            updateProgress();
+
+            // Add event listener to navigation button
+            navButton.addEventListener('click', handleNavigation);
+        }
+
+        // Render current question
+        function renderQuestion() {
+            const question = questions[currentQuestionIndex];
+            let html = '';
+
+            html += `<div class="question-container">
+                <div class="question">${currentQuestionIndex + 1}. ${question.question}</div>`;
+
+            if (question.type === 'select') {
+                html += `<div class="options">`;
+                question.options.forEach(option => {
+                    const isSelected = answers[question.id] === option.value;
+                    html += `<div class="option ${isSelected ? 'selected' : ''}"
+                                data-question="${question.id}"
+                                data-value="${option.value}">
+                                ${option.text}
+                            </div>`;
+                });
+                html += `</div>`;
+            } else if (question.type === 'range') {
+                const defaultValue = answers[question.id] || Math.floor((question.max - question.min) / 2) + question.min;
+                html += `<input type="range" id="${question.id}" min="${question.min}" max="${question.max}"
+                        value="${defaultValue}">
+                        <div class="range-value">
+                            Current value: <span id="${question.id}-value">${defaultValue}</span> ${question.unit}
+                        </div>
+                        <div class="range-labels">`;
+
+                question.labels.forEach(label => {
+                    html += `<span>${label}</span>`;
+                });
+
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            quizContainer.innerHTML = html;
+
+            // Add event listeners to options
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.addEventListener('click', handleOptionClick);
+            });
+
+            // Add event listener to range input if applicable
+            if (question.type === 'range') {
+                const rangeInput = document.getElementById(question.id);
+                const valueDisplay = document.getElementById(`${question.id}-value`);
+
+                rangeInput.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value;
+                    answers[question.id] = this.value;
+                });
+            }
+
+            // Update navigation button text
+            updateNavigationButton();
+        }
+
+        // Handle option click
+        function handleOptionClick(event) {
+            const questionId = event.target.getAttribute('data-question');
+            const value = event.target.getAttribute('data-value');
+
+            // Store answer
+            answers[questionId] = value;
+
+            // Update UI
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            event.target.classList.add('selected');
+
+            // Auto-advance after selection
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    nextQuestion();
+                }, 300);
+            }
+        }
+
+        // Handle navigation button click
+        function handleNavigation() {
+            if (currentQuestionIndex < questions.length - 1) {
+                nextQuestion();
+            } else {
+                calculateAndShowResults();
+            }
+        }
+
+        // Move to next question
+        function nextQuestion() {
+            // Save answer for range type if applicable
+            const currentQuestion = questions[currentQuestionIndex];
+            if (currentQuestion.type === 'range' && !answers[currentQuestion.id]) {
+                const rangeInput = document.getElementById(currentQuestion.id);
+                if (rangeInput) {
+                    answers[currentQuestion.id] = rangeInput.value;
+                }
+            }
+
+            // Move to next question
+            currentQuestionIndex++;
+            renderQuestion();
+            updateProgress();
+        }
+
+        // Move to previous question
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+                updateProgress();
+            }
+        }
+
+        // Update navigation button text
+        function updateNavigationButton() {
+            if (currentQuestionIndex < questions.length - 1) {
+                navButton.textContent = 'Next';
+            } else {
+                navButton.textContent = 'See My Results';
+            }
+        }
+
+        // Update progress bar and text
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            progressPercent.textContent = `${Math.round(progress)}%`;
+        }
+
+        // Calculate and show results
+        function calculateAndShowResults() {
+            // Check if all questions are answered
+            const unansweredCount = questions.filter(q => !answers[q.id]).length;
+
+            if (unansweredCount > 0) {
+                alert(`Please answer all questions before submitting. You have ${unansweredCount} questions remaining.`);
+                return;
+            }
+
+            // Calculate result
+            const result = calculateResult();
+
+            // Update UI with result
+            document.getElementById('result-value').textContent = `${result.drinks} drinks`;
+            document.getElementById('result-explanation').textContent = result.explanation;
+            document.getElementById('recommendation').innerHTML = `<strong>Recommendation:</strong> ${result.recommendation}`;
+            document.getElementById('drinking-advice').innerHTML = result.advice;
+
+            // Show results section, hide quiz
+            quizContainer.style.display = 'none';
+            navButton.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            document.querySelector('.progress-bar').style.display = 'none';
+            document.querySelector('.progress-info').style.display = 'none';
+        }
+
+        // Calculate the result based on answers
+        function calculateResult() {
+            // Base score - average person can handle about 3 drinks with Rise & Shine
+            let baseScore = 3;
+
+            // Weight factor (weight has significant impact)
+            const weight = parseInt(answers.weight) || 70;
+            const weightFactor = (weight - 45) / 35; // Normalized to 0-2.14 range
+            baseScore += weightFactor * 1.5; // Up to 3.2 additional drinks for heavier people
+
+            // Metabolism factor
+            if (answers.metabolism === 'fast') baseScore += 1.5;
+            else if (answers.metabolism === 'slow') baseScore -= 1;
+
+            // Meal factor
+            if (answers.meal === 'full') baseScore += 1.2;
+            else if (answers.meal === 'light') baseScore += 0.5;
+            else baseScore -= 0.5; // Empty stomach
+
+            // Hydration factor
+            if (answers.hydration === 'high') baseScore += 0.8;
+            else if (answers.hydration === 'low') baseScore -= 0.8;
+
+            // Exercise factor
+            if (answers.exercise === 'regularly') baseScore += 0.7;
+            else if (answers.exercise === 'rarely') baseScore -= 0.3;
+
+            // Alcohol frequency (tolerance) factor
+            if (answers.alcohol_frequency === 'multiple') baseScore += 1;
+            else if (answers.alcohol_frequency === 'weekly') baseScore += 0.5;
+            else if (answers.alcohol_frequency === 'rarely') baseScore -= 0.5;
+
+            // Self-assessed tolerance
+            if (answers.tolerance === 'high') baseScore += 1;
+            else if (answers.tolerance === 'low') baseScore -= 0.7;
+
+            // Sleep factor
+            if (answers.sleep === 'plenty') baseScore += 0.5;
+            else if (answers.sleep === 'little') baseScore -= 0.5;
+
+            // Hangover susceptibility
+            if (answers.hangover === 'mild') baseScore += 0.7;
+            else if (answers.hangover === 'severe') baseScore -= 1;
+
+            // Drinking pace
+            if (answers.drink_pace === 'slow') baseScore += 0.8;
+            else if (answers.drink_pace === 'fast') baseScore -= 1;
+
+            // Ensure minimum of 1 drink
+            const finalScore = Math.max(1, baseScore);
+
+            // Round to 1 decimal place
+            const drinks = Math.round(finalScore * 10) / 10;
+
+            // Generate explanation based on most influential factors
+            let significantFactors = [];
+
+            if (weight > 90) significantFactors.push("higher body weight");
+            else if (weight < 60) significantFactors.push("lower body weight");
+
+            if (answers.metabolism === 'fast') significantFactors.push("fast metabolism");
+            if (answers.meal === 'full') significantFactors.push("eating a full meal");
+            if (answers.hydration === 'high') significantFactors.push("good hydration");
+            if (answers.alcohol_frequency === 'multiple') significantFactors.push("regular alcohol consumption");
+            if (answers.drink_pace === 'fast') significantFactors.push("rapid drinking pace");
+
+            let explanation = "";
+            if (significantFactors.length > 0) {
+                explanation = `Your ${significantFactors.join(", ")} ${significantFactors.length > 1 ? 'are' : 'is'} significantly affecting your Rise & Shine protection level.`;
+            } else {
+                explanation = "Your results are based on a combination of several balanced factors in your profile.";
+            }
+
+            // Generate recommendation
+            let recommendation = "";
+            if (drinks <= 2) {
+                recommendation = "Take Rise & Shine 30 minutes before your first drink. Consider a second serving after 2 hours if drinking extends beyond 3 hours.";
+            } else if (drinks <= 4) {
+                recommendation = "Take Rise & Shine 30 minutes before your first drink. For optimal protection, stay hydrated by alternating alcoholic drinks with water.";
+            } else {
+                recommendation = "Take Rise & Shine 30 minutes before your first drink. Your profile suggests good natural resilience, but remember to drink responsibly and stay hydrated throughout the night.";
+            }
+
+            // Generate advice
+            let advice = `<strong>For maximum effectiveness:</strong><br>
+                • Take Rise & Shine on an empty stomach 30 minutes before your first drink<br>
+                • Stay hydrated by drinking water throughout the night<br>
+                • Consider eating a meal with protein and healthy fats before drinking<br>
+                • Remember that Rise & Shine helps reduce hangover symptoms but doesn't eliminate all effects of alcohol`;
+
+            return {
+                drinks: drinks,
+                explanation: explanation,
+                recommendation: recommendation,
+                advice: advice
+            };
+        }
+
+        // Initialize quiz when page loads
+        window.addEventListener('DOMContentLoaded', initQuiz);
+    </script>
+</body>
+</html>
+
