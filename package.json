@@ -1,11 +1,19 @@
 {
-  "name": "coffee-website",
+  "name": "riseandshine",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
+  "main": "app.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "test",
+    "start:dev": "nodemon ./app.mjs"
   },
   "author": "Rodrigo Aldegheri",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "type": "module"
 }
